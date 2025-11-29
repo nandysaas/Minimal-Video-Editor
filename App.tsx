@@ -126,6 +126,39 @@ const App: React.FC = () => {
       }));
   };
 
+  // --- Project Management ---
+  const handleSaveProject = () => {
+    const data = JSON.stringify(project, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pastel-cut-project-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleLoadProject = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = JSON.parse(e.target?.result as string);
+        if (json.elements && Array.isArray(json.elements)) {
+            // Basic validation
+            setProject(json);
+            setSelectedId(null);
+            setCurrentTime(0);
+        } else {
+            alert('Invalid project file structure');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Failed to parse project file');
+      }
+    };
+    reader.readAsText(file);
+  };
+
   // --- Playback Loop ---
   const animate = (time: number) => {
     if (!lastTimeRef.current) lastTimeRef.current = time;
@@ -241,6 +274,8 @@ const App: React.FC = () => {
         onUpdateBackgroundColor={(color) => setProject(prev => ({ ...prev, backgroundColor: color }))}
         duration={project.duration}
         onUpdateDuration={(duration) => setProject(prev => ({ ...prev, duration }))}
+        onSaveProject={handleSaveProject}
+        onLoadProject={handleLoadProject}
       />
 
       {/* Main Workspace: Canvas + Timeline */}

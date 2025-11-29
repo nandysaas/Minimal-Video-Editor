@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
     Type, Square, Circle as CircleIcon, Image as ImageIcon, Download, 
     Trash2, Bold, Italic, Sparkles, Grid3X3, AlignLeft, AlignCenter, AlignRight,
-    Clock
+    Clock, Save, FolderOpen
 } from 'lucide-react';
 import { Button, Input, Separator, Popover, Label, Slider, Select, Badge } from './ui/common';
 import { EditorElement, ElementProps } from '../types';
@@ -30,6 +30,10 @@ interface ToolbarProps {
   // Project Props
   duration: number;
   onUpdateDuration: (duration: number) => void;
+  
+  // File Ops
+  onSaveProject: () => void;
+  onLoadProject: (file: File) => void;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({ 
@@ -47,13 +51,17 @@ const Toolbar: React.FC<ToolbarProps> = ({
   backgroundColor,
   onUpdateBackgroundColor,
   duration,
-  onUpdateDuration
+  onUpdateDuration,
+  onSaveProject,
+  onLoadProject
 }) => {
   const [animateOpen, setAnimateOpen] = useState(false);
   const [positionOpen, setPositionOpen] = useState(false);
   const [colorOpen, setColorOpen] = useState(false);
   const [transparencyOpen, setTransparencyOpen] = useState(false);
   const [bgColorOpen, setBgColorOpen] = useState(false);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,6 +69,14 @@ const Toolbar: React.FC<ToolbarProps> = ({
       const url = URL.createObjectURL(file);
       onAddImage(url);
     }
+  };
+  
+  const handleProjectLoad = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+          onLoadProject(file);
+          e.target.value = ''; // Reset input
+      }
   };
 
   const updateProp = (key: keyof ElementProps, value: any) => {
@@ -441,8 +457,26 @@ const Toolbar: React.FC<ToolbarProps> = ({
             </div>
         )}
 
-        {/* Right: Export */}
-        <div className="flex items-center">
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 text-muted-foreground/80">
+                 <input 
+                    type="file" 
+                    accept=".json" 
+                    ref={fileInputRef} 
+                    className="hidden" 
+                    onChange={handleProjectLoad}
+                />
+                <Button variant="ghost" size="icon" onClick={onSaveProject} title="Save Project" className="h-9 w-9">
+                    <Save size={18} />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} title="Open Project" className="h-9 w-9">
+                    <FolderOpen size={18} />
+                </Button>
+            </div>
+            
+            <Separator orientation="vertical" className="h-6 mx-1" />
+
             <Button 
                 onClick={onExport} 
                 disabled={isExporting} 
