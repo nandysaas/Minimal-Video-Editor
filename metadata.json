@@ -1,0 +1,5 @@
+{
+  "name": "Minimal Video Editor",
+  "description": "A trendy, responsive video editor with keyframe animations, timeline scrubbing, and MP4 export.",
+  "requestFramePermissions": []
+}
